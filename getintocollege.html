@@ -157,7 +157,7 @@
             const selectedSchools = Array.from(document.getElementById("school").selectedOptions).map(option => option.value);
 
             // Validate input
-            if (isNaN(gpa) || isNaN(sat) || gpa < 0 || gpa > 5.0 || sat < 400 || sat > 1600) {
+            if (isNaN(gpa) || isNaN(sat) || gpa < 0 || gpa > 4.0 || sat < 400 || sat > 1600) {
                 alert("Please enter valid GPA and SAT scores.");
                 return;
             }
