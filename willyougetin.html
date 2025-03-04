@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Admission Simulator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 1s ease-out;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            font-size: 32px;
+        }
+
+        label {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input, select {
+            padding: 12px;
+            margin: 12px 0;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #007bff;
+            outline: none;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #007bff, #00d4ff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #0056b3, #00aaff);
+            transform: translateY(-4px);
+        }
+
+        .school {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease-out;
+            cursor: pointer;
+        }
+
+        .admitted {
+            color: green;
+            font-weight: bold;
+        }
+
+        .not-admitted {
+            color: red;
+            font-weight: bold;
+        }
+
+        .maybe-admitted {
+            color: yellow;
+            font-weight: bold;
+        }
+
+        .school:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Fade-in animation */
+        @keyframes fadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>College Admission Calculator</h1>
+
+        <div id="inputs">
+            <label for="gpa">Enter your Weighted GPA (4.0 scale):</label>
+            <input type="number" id="gpa" step="0.01" min="0" max="4.2" placeholder="GPA (e.g., 3.5)" required>
+
+            <label for="sat">Enter your SAT score:</label>
+            <input type="number" id="sat" min="400" max="1600" placeholder="SAT Score (e.g., 1200)" required>
+
+            <label for="school">Select schools (Ctrl+Click to select multiple):</label>
+            <select id="school" multiple size="10"></select>
+
+            <button onclick="simulateAdmissions()">Simulate Admissions</button>
+        </div>
+
+        <div id="school-list"></div>
+    </div>
+
+    <script>
+        const schools = {
+          "Arizona State University": { "avgGPA": 3.54, "avgSAT": 1210, "acceptanceRate": 88 },
+          "Brown University": {"avgGPA": 4.18 , "avgSAT": 1535, "acceptanceRate": 5.4 },
+          "California Institute of Technology (Caltech)": { "avgGPA": 4.19, "avgSAT": 1530, "acceptanceRate": 6 },
+          "Carnegie Mellon University": { "avgGPA": 3.95, "avgSAT": 1460, "acceptanceRate": 15 },
+          "Columbia University": { "avgGPA": 4.15, "avgSAT": 1500, "acceptanceRate": 6 },
+          "Cornell University": { "avgGPA": 4.05, "avgSAT": 1480, "acceptanceRate": 9 },
+          "Duke University": { "avgGPA": 4.12, "avgSAT": 1475, "acceptanceRate": 8 },
+          "Georgia Institute of Technology (Georgia Tech)": { "avgGPA": 4.09, "avgSAT": 1450, "acceptanceRate": 16 },
+          "Harvard University": { "avgGPA": 4.18, "avgSAT": 1520, "acceptanceRate": 4.6 },
+          "Harvey Mudd College": { "avgGPA": 4.15, "avgSAT": 1520, "acceptanceRate": 18 },
+          "Johns Hopkins University": { "avgGPA": 3.93, "avgSAT": 1505, "acceptanceRate": 7 },
+          "Massachusetts Institute of Technology (MIT)": { "avgGPA": 4.17, "avgSAT": 1500, "acceptanceRate": 3 },
+          "Northeastern University": { "avgGPA": 4.04, "avgSAT": 1465, "acceptanceRate": 6 },
+          "Oregon State University": { "avgGPA": 3.61, "avgSAT": 1200, "acceptanceRate": 82 },
+          "Pennsylvania State University (Penn State)": { "avgGPA": 3.76, "avgSAT": 1275, "acceptanceRate": 55 },
+          "Princeton University": { "avgGPA": 4.18, "avgSAT": 1505, "acceptanceRate": 5.8 },
+          "Purdue University": { "avgGPA": 3.84, "avgSAT": 1385, "acceptanceRate": 53 },
+          "Rensselaer Polytechnic Institute": { "avgGPA": 3.88, "avgSAT": 1400, "acceptanceRate": 57 },
+          "Rochester Institute of Technology": { "avgGPA": 3.7, "avgSAT": 1305, "acceptanceRate": 71 },
+          "Stanford University": { "avgGPA": 4.18, "avgSAT": 1480, "acceptanceRate": 4.3 },
+          "Texas A&M University": { "avgGPA": 3.78, "avgSAT": 1285, "acceptanceRate": 64 },
+          "University of Alabama": { "avgGPA": 3.71, "avgSAT": 1225, "acceptanceRate": 78 },
+          "University of Arizona": { "avgGPA": 3.42, "avgSAT": 1230, "acceptanceRate": 85 },
+          "University of California, Berkeley (UC Berkeley)": { "avgGPA": 4.16, "avgSAT": 1405, "acceptanceRate": 17 },
+          "University of California, Los Angeles (UCLA)": { "avgGPA": 4.18, "avgSAT": 1415, "acceptanceRate": 14 },
+          "University of California, San Diego (UC San Diego)": { "avgGPA": 4.11, "avgSAT": 1370, "acceptanceRate": 24 },
+          "University of Central Florida": { "avgGPA": 3.85, "avgSAT": 1260, "acceptanceRate": 45 },
+          "University of Colorado Boulder": { "avgGPA": 3.66, "avgSAT": 1230, "acceptanceRate": 80 },
+          "University of Florida": { "avgGPA": 4.0, "avgSAT": 1360, "acceptanceRate": 30 },
+          "University of Hawaii at Manoa": { "avgGPA": 3.74, "avgSAT": 1180, "acceptanceRate": 70 },
+          "University of Illinois Urbana-Champaign": { "avgGPA": 3.88, "avgSAT": 1410, "acceptanceRate": 44 },
+          "University of Kansas": { "avgGPA": 3.6, "avgSAT": 1175, "acceptanceRate": 93 },
+          "University of Kentucky": { "avgGPA": 3.51, "avgSAT": 1190, "acceptanceRate": 95 },
+          "University of Michigan": { "avgGPA": 3.9, "avgSAT": 1435, "acceptanceRate": 18 },
+          "University of Mississippi (Ole Miss)": { "avgGPA": 3.6, "avgSAT": 1160, "acceptanceRate": 88 },
+          "University of Nevada, Reno": { "avgGPA": 3.4, "avgSAT": 1130, "acceptanceRate": 88 },
+          "University of North Texas": { "avgGPA": 3.48, "avgSAT": 1150, "acceptanceRate": 84 },
+          "University of Oregon": { "avgGPA": 3.59, "avgSAT": 1195, "acceptanceRate": 83 },
+          "University of Southern California (USC)": { "avgGPA": 3.95, "avgSAT": 1455, "acceptanceRate": 12 },
+          "University of Texas at Austin": { "avgGPA": 3.84, "avgSAT": 1380, "acceptanceRate": 29 },
+          "University of Washington": { "avgGPA": 3.83, "avgSAT": 1300, "acceptanceRate": 53 },
+          "Virginia Tech": { "avgGPA": 3.96, "avgSAT": 1300, "acceptanceRate": 56 },
+          "Washington State University": { "avgGPA": 3.46, "avgSAT": 1125, "acceptanceRate": 86 },
+          "West Virginia University": { "avgGPA": 3.49, "avgSAT": 1110, "acceptanceRate": 90 },
+          "Yale University": { "avgGPA": 4.16, "avgSAT": 1510, "acceptanceRate": 5.9 }
+        };
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const schoolSelect = document.getElementById("school");
+            Object.keys(schools).forEach(school => {
+                let option = document.createElement("option");
+                option.value = school;
+                option.textContent = school;
+                schoolSelect.appendChild(option);
+            });
+        });
+
+        function simulateAdmissions() {
+            const gpa = parseFloat(document.getElementById("gpa").value);
+            const sat = parseInt(document.getElementById("sat").value);
+            const selectedSchools = Array.from(document.getElementById("school").selectedOptions).map(option => option.value);
+
+            if (isNaN(gpa) || isNaN(sat) || gpa < 0 || gpa > 5.0 || sat < 400 || sat > 1600) {
+                alert("Please enter valid GPA and SAT scores.");
+                return;
+            }
+
+            const schoolListDiv = document.getElementById("school-list");
+            schoolListDiv.innerHTML = '';
+
+            selectedSchools.forEach(school => {
+                const schoolData = schools[school];
+
+                const normalizedGPA = (gpa / 4.0) * 100;
+                const normalizedSAT = (sat / 1600) * 100;
+                const schoolNormalizedGPA = (schoolData.avgGPA / 4.2) * 100;
+                const schoolNormalizedSAT = (schoolData.avgSAT / 1600) * 100;
+
+                const userScore = 0.5 * normalizedGPA + 0.5 * normalizedSAT;
+                const schoolScore = 0.5 * schoolNormalizedGPA + 0.5 * schoolNormalizedSAT;
+
+                let academicFactor = (userScore / schoolScore) * 100 * 1.2;
+
+                let acceptanceChance = academicFactor * (schoolData.acceptanceRate / 100);
+
+                acceptanceChance = Math.max(0, Math.min(100, acceptanceChance));
+
+                let resultText;
+                if (acceptanceChance >= 50) {
+                    resultText = `<span class="admitted">${school}: Likely Admitted (Chance: ${acceptanceChance.toFixed(1)}%)</span>`;
+                } else if (acceptanceChance <= 30) {
+                    resultText = `<span class="not-admitted">${school}: Unlikely Admitted (Chance: ${acceptanceChance.toFixed(1)}%)</span>`;
+                } else {
+                    resultText = `<span class="maybe-admitted">${school}: Potentially Admitted (Chance: ${acceptanceChance.toFixed(1)}%)</span>`;
+                }
+
+                const schoolDiv = document.createElement('div');
+                schoolDiv.classList.add('school');
+                schoolDiv.innerHTML = resultText;
+                schoolListDiv.appendChild(schoolDiv);
+            });
+        }
+    </script>
+</body>
+</html>
